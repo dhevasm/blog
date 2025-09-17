@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model posts {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  slug      String   @unique
+  content   String
+  author    users    @relation(fields: [authorId], references: [id])
+  authorId  String   @db.ObjectId
+  isPublished Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tags      post_has_tags[]
+  likedBy   liked_posts[]
+  comments  comments[]
+}
+
+model users{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   
+  email     String   @unique
+  password  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     posts[]
+  tags      tags[]
+  likedPosts liked_posts[]
+  comments  comments[]
+}
+
+model tags{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  createdById String   @db.ObjectId
+  createdBy  users    @relation(fields: [createdById], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     post_has_tags[]
+}
+
+model post_has_tags{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  tagId     String   @db.ObjectId
+  post      posts    @relation(fields: [postId], references: [id])
+  tag       tags     @relation(fields: [tagId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([postId, tagId])
+}
+
+model liked_posts{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  postId    String   @db.ObjectId
+  user      users    @relation(fields: [userId], references: [id])
+  post      posts    @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+  @@unique([userId, postId])
+}
+
+model comments {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  postId    String   @db.ObjectId
+  userId    String   @db.ObjectId
+  user      users    @relation(fields: [userId], references: [id])
+  post      posts    @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
