@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
-export default async function POST(request: NextRequest){
+export async function POST(request: NextRequest){
  try{
     const data = await request.formData();
     const email = data.get('email')?.toString();
@@ -23,6 +23,7 @@ export default async function POST(request: NextRequest){
     return NextResponse.json({ status: "success", token: token, message: 'Login successful' }, { status: 200 });
 
  }catch(error){
-    return NextResponse.json({ status:"error", message: error}, {status: 500});
+    console.log(error);
+    return NextResponse.json({ status:"error", message: "Internal server error"}, {status: 500});
  }  
 }
